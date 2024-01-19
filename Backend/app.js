@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const userRouter = require('./User/Userroute.js');
+const contactRouter = require('./Contacts/Contactroute.js');
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/users', userRouter);
+app.use('/api/contacts', contactRouter);
 
 
 

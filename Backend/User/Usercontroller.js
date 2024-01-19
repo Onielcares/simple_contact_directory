@@ -1,4 +1,5 @@
 const User = require('./Usermodel');
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 
@@ -10,11 +11,15 @@ exports.registerUser = async (req, res, next) => {
             username: req.body.username,
             email: req.body.email,
             password: hashedPassword,
-            phone: req.body.phone
+            phonenumber: req.body.phonenumber
         });
         const user = await newUser.save();
-        res.status(201).send('User has been created!');
-        res.json(user);
+        res.status(200).json({
+            status: 'success',
+            data: {
+                user
+            }
+        })
     }   
     catch (err) {
         res.status(500).send(err.message);
@@ -22,24 +27,42 @@ exports.registerUser = async (req, res, next) => {
 
 exports.loginUser = async (req, res, next) => {
     try {
-        const user = await user.findone({email: req.body.email});
-        if(!user) {
-            res.status(400).send('User not found!');
+        const user = await User.findOne({email: req.body.email});
 
-            const validPassword = await bcrypt.compare(req.body.password, user.password);
-            if(!validPassword) {
-                res.status(400).send('Incorrect password!');
-            }
-            res.status(200).send('Login successful!');
+        if(!user) {
+            res.status(400).json({
+                status: 'error',
+                message: 'Please enter correct Email Address!',
+                data: null});
         }
-    }
+
+        const validPassword = await bcrypt.compare(req.body.password, user.password);
+            if(!validPassword) {
+               return res.status(400).json({
+                    status: 'error',
+                    message: 'Please enter correct Password!',
+                    data: null });
+            }
+            res.status(200).json({
+                status: 'success',
+                data: {
+                    username: user.username,
+                    email: user.email,
+                }
+            })
+        }
+
     catch (err) {
         res.status(500).send(err.message);
     }};
 
 exports.logoutUser = async (req, res, next) => {
     try {
-        res.status(200).send('Logout successful!');
+        res.status(200).json({
+            status: 'success',
+            message: 'User logged out successfully!',
+            data: null
+        })
     }
     catch (err) {
         res.status(500).send(err.message);
