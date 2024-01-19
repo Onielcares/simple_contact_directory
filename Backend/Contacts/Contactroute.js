@@ -5,7 +5,7 @@ const router = express.Router();
 
 router
 .route('/')
-.post(Contactcontroller.saveContact)
+.post(Contactcontroller.upload.single('image'), Contactcontroller.saveContact)
 .get(Contactcontroller.getContact);
 
 router

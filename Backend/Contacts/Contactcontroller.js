@@ -1,12 +1,31 @@
 const Contact = require('./Contactmodel.js');
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'Backend/uploads');
+    },
+    filename: (req, file, cb) => {
+        const prefix = 'custom-prefix-';
+        const fieldname = file.fieldname || 'default';
+        const imagename = `${prefix}${fieldname}-${Date.now()}${path.extname(file.originalname)}`
+        cb(null, imagename);
+    }
+});
+
+exports.upload = multer({ storage: storage });
 
 exports.saveContact = async (req, res, next) => {
+    try {
+    const image = req.file ? req.file.filename: null;
+
     const newContact = new Contact({
         firstname: req.body.firstname,
         lastname: req.body.lastname,
         email: req.body.email,
         phonenumber: req.body.phonenumber,
-        address: req.body.address
+        image: image
     });
     const contact = await newContact.save();
     res.status(200).json({
@@ -16,6 +35,22 @@ exports.saveContact = async (req, res, next) => {
             contact
         }
     });
+}
+catch (err) {
+    if (err.name === 'ValidationError') {
+        const errors = Object.values(err.errors).map(el => el.message);
+        return res.status(400).json({
+            status: 'fail',
+            message: 'Invalid data',
+            errors
+        });
+    }
+    res.status(500).json({
+        status: 'error',
+        message: 'Internal server error',
+        error: err.message
+    });
+}
 };
 
 exports.getContact = async (req, res, next) => {
